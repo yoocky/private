@@ -1,21 +1,26 @@
+/**
+ *@fiveOverview 核心抓取模块 
+ *@author zhoumengyan
+ */
 var http = require("http");
 var ng = require("nodegrass");
-var cheerio = require("cheerio");
-
-//远程抓取的核心方法集合
-var fetch = {};
+//ua 伪装
+var headers = {
+  'Content-Type': 'application/x-www-form-urlencoded',
+  'User-Agent' : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.99 Safari/537.36'
+};
 
 //抓取函数
-fetch.get = function(url, callback){
+exports.get = function(url, callback){
     ng.get(url, function(data,status,headers){ 
         callback(data);
-    },'utf8').on('error', function(e) {
+    },headers,'utf8').on('error', function(e) {
       console.log("Got error: " + e.message); 
     });
 }
 
 //下载文件
-fetch.getFile = function(url, path, callback){
+exports.getFile = function(url, path, callback){
     ng.getFile(url, path, function(e){
         if(e){
         console.log(e);
@@ -23,58 +28,22 @@ fetch.getFile = function(url, path, callback){
         console.log('download success!');
     });
 }
-//火车网
-var huoche = {};
-huoche.rootUrl = "http://changtu.huoche.com.cn/";
 
-//获取城市区域链接列表
-huoche.getAareList = function(url, end){
-    fetch.get(url, function (data) {
-        if(data) {
-            var sel = ".provincelist a";
-            var $ = cheerio.load(data);
-            var list = [];
-            $(sel).each(function(i, k){
-                var $this = $(this);
-                var item = {
-                    href : $this.attr('href'),
-                    name : $this.text()
-                }
-                list.push(item);
-            })   
-            //遍历获取房源信息
-            for(var i = 0, l = list.length; i < l; i++){
-                var url = huoche.rootUrl + list[i].href;
-                console.log(list[i].name, url);
-                if(end){
-                    huoche.getRentInfo(url);
-                }else{
-                    huoche.getAareList(url, true);
-                }
-            }
-        } else
-            console.log("error");
+//ajax方法集合
+exports.ajax = {};
+
+//post 方法
+exports.ajax.post = function(url, params, length, callback){
+    headers['Content-Length'] = length;
+    ng.post(url,
+    function (data, status, headers) {
+      callback(data);
+    },
+    headers,
+    params,
+    'utf8').
+    on('error', function (e) {
+      console.log("Got error: " + e.message);
     });
 }
-
-//获取区域房源信息
-huoche.getRentInfo = function(url){
-    fetch.get(url, function (data) {
-        if(data) {
-            var sel = "table";
-            var $ = cheerio.load(data);
-            console.log($(sel).text().trim());
-            
-        } else
-            console.log("error");
-    });
-}
-
-huoche.init = function(){
-    huoche.getAareList(huoche.rootUrl);
-}
-
-huoche.init();
-
-
 
