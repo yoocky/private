@@ -1,0 +1,8 @@
+{
+  "name": "fetch",
+  "version": "1.0.0",
+  "devDependencies": {
+    "nodegrass": "",
+    "cheerio": ""
+  }
+}
